@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@author: jan
+@author: Jan Van den Schilden
 """
 
 import os

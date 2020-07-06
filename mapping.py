@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@author: jan
+@author: Jan Van den Schilden
 """
-
-import os
 import time
 
 import urllib.parse
@@ -12,7 +10,8 @@ import urllib.request
 
 
 def UniProtKB_Mapping(
-        fileName,query, 
+        query, 
+        fileName=None,
         From="ACC",
         To="ACC",
         Format="fasta",
@@ -27,15 +26,15 @@ def UniProtKB_Mapping(
     
     Parameters
     ----------
-    fileName : str
-        The destination path of the file that is downloaded.  If just a
-        name is specified, the file is stored in the directory from 
-        which the function was executed.  Additionaly the relative or 
-        absolute path can be specified.
     query : str
         The query parameter accepts a sequence of identifiers separated 
         by a space or newline character.  The format of the identifiers 
         depends on the database which is mapped from.
+    fileName : str (Default=None)
+        The destination path of the file that is downloaded.  If just a
+        name is specified, the file is stored in the directory from 
+        which the function was executed.  Additionaly the relative or 
+        absolute path can be specified.
     From : str (Default='ACC')
         The database from which the identifiers are mapped. The 
         available databases are listed on: 
@@ -54,8 +53,8 @@ def UniProtKB_Mapping(
     
     Returns
     -------
-    fileName : str
-        The destination path of the file that is downloaded.
+    response : str
+        The content of the downloaded file in string format
     """
     
     """ The Download of the file is tried 10 times.  Each time the 
@@ -77,9 +76,11 @@ def UniProtKB_Mapping(
             req = urllib.request.Request(url, data)
             with urllib.request.urlopen(req) as f:
                 response = str(f.read(),encoding="utf-8")
-            with open(fileName,"w") as f:
-                f.write(response)
-            return fileName
+            if fileName:
+                # Write content to file
+                with open(fileName,"w") as f:
+                    f.write(response)
+            return response
         except:
             print(
                     "request failed, wait for", 
@@ -87,4 +88,12 @@ def UniProtKB_Mapping(
                     "seconds and try again",
                     )
             time.sleep(i*5)
-            
+
+"""Test
+print(
+      UniProtKB_Mapping(
+              query="P0AFL3",
+              fileName="test.fasta",
+              ),
+      )
+"""
