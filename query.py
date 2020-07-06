@@ -51,7 +51,7 @@ def downloadFile(
     return fileName
 
 
-def uniprotDownload(
+def UniProtKB_Query(
         fileName, 
         query="",
         format="list",
