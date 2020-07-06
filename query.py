@@ -13,23 +13,24 @@ def downloadFile(
         url,
         fileName,
         ):
-    """
-    Downloads a file from the internet with a given url.
-    The function delete any existing files with the given filename.
-    It will then download and name the new file.
-    The function is designed to also work with very big files.
+    """Uses get request to download file from given url.
+    
+    This function downloads a file from the internet with a given url.  
+    When a file with the given name already exists, it is deleted before
+    the download starts. The file is downloaded in chunks, so that files
+    larger than RAM memory can be downloaded.
     
     Parameters
     ----------
     url : str
-        url that is needed used to download a file.
+        The url from which the file is downloaded. 
     fileName : str
-        Name of the new file
+        The name of the new file.
     
     Returns
     -------
     fileName : str
-        returns the name of the new file
+        The name of the new file.
     """
     try:
         # Delete existing files with filename
@@ -38,8 +39,8 @@ def downloadFile(
         pass
     
     """ Use requests to download file. 
-    Works with streams to be able large files without having the need of a 
-    large memory.
+    Works with streams to be able large files without having the need of 
+    a large memory.
     """
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
@@ -60,42 +61,52 @@ def uniprotDownload(
         limit=0,
         offset=0,
         ):
-    """Downloads file from uniprot for given parameters
+    """Implementation of the UniProtKB query retrieval REST api.
     
-    If no parameters are given the function will download a list of all the 
-    proteins ID's. More information about how the URL should be constructed can
-    be found on: 
+    UniProtKB provides an API to retrieve data by reading a query that 
+    is encoded inside the url.  This function accepts queries similar to
+    those accepted by the UniProtKB web interface.  In fact, the query 
+    builder (https://www.uniprot.org/help/text-search) can be used to 
+    construct the query accepted by this function.  If no query is 
+    specified, a list of all protein ID's is downloaded. 
+    
+    More information about the REST API is found on: 
     https://www.uniprot.org/help/api%5Fqueries
     
     Parameters
     ----------
     fileName : str
-        name for the downloaded file
+        The destination path of the file that is downloaded.  If just a
+        name is specified, the file is stored in the directory from 
+        which the function was executed.  Additionaly the relative or 
+        absolute path can be specified.
     query : str (Default='')
-        query that would be searched if as you used the webinterface on 
-        https://www.uniprot.org/. If no query is provided, all protein entries
-        are selected. 
+        The query that describes the data to be downloaded.  The format 
+        is the same as contructed by the query builder available on the 
+        UniProtKB webinterface.  
     format : str (Default='list')
-        File format you want to retrieve from uniprot. Available format are:
+        The available format are: 
         html | tab | xls | fasta | gff | txt | xml | rdf | list | rss
     columns : str (Default='')
-        Column information you want to know for each entry in the query 
-        when format tab or xls is selected.
+        The column information to be downloaded for each entry when the 
+        format is tab or xls.
     include : str (Default='no')
-        Include isoform sequences when the format parameter is set to fasta.
-        Include description of referenced data when the format parameter is set to rdf.
-        This parameter is ignored for all other values of the format parameter.
+        Include isoform sequences when the format is fasta.  Include 
+        description of referenced data when the format is rdf.  This 
+        parameter is ignored for all other formats.
     compress : str (Default='no')
-        download file in gzipped compression format.
+        Download the file as a gzipped compression format when 'yes'.
     limit : int (Default=0)
-        Limit the amount of results that is given. 0 means you download all.
+        Limit the amount of results that is given. 0 means you download 
+        all.
     offset : int (Default=0)
-        When you limit the amount of results, offset determines where to start.
+        When you limit the amount of results, offset determines where to
+        start.
         
     Returns
     -------
     fileName : str
-        Name of the downloaeded file.
+        The name of the downloaeded file.
     """
     def generateURL(
             baseURL, 
@@ -107,19 +118,27 @@ def uniprotDownload(
             limit="0",
             offset="0",
             ):
+        
         """Generate URL with given parameters"""
         def glueParameters(**kwargs):
             gluedParameters = ""
             for parameter, value in kwargs.items():
                 gluedParameters+=parameter + "=" + str(value) + "&"
-            return gluedParameters.replace(" ","+")[:-1] #Last "&" is removed, spacec replaced by "+"
-        return baseURL + glueParameters(query=query,
-                                        format=format,
-                                        columns=columns,
-                                        include=include,
-                                        compress=compress,
-                                        limit=limit,
-                                        offset=offset)
+            #Last "&" is removed and spaces are replaced by "+"
+            return gluedParameters.replace(" ","+")[:-1] 
+        
+        return (baseURL 
+                + glueParameters(
+                        query=query,
+                        format=format,
+                        columns=columns,
+                        include=include,
+                        compress=compress,                
+                        limit=limit,
+                        offset=offset,
+                        )
+                )
+                
     URL = generateURL(
             "https://www.uniprot.org/uniprot/?",
             query=query,
